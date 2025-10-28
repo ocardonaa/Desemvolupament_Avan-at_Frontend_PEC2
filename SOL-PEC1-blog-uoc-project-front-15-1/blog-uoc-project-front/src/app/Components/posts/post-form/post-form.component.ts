@@ -87,24 +87,24 @@ export class PostFormComponent implements OnInit {
     });
   }
 
-  private async loadCategories(): Promise<void> {
+  private loadCategories(): void {
     let errorResponse: any;
     const userId = this.localStorageService.get('user_id');
     if (userId) {
-      try {
-        this.categoriesList = await this.categoryService.getCategoriesByUserId(
-          userId
-        );
-      } catch (error: any) {
-        errorResponse = error.error;
-        this.sharedService.errorLog(errorResponse);
-      }
+      this.categoryService.getCategoriesByUserId(
+        userId
+      ).subscribe((categories: CategoryDTO[]) => {
+        this.categoriesList = categories
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
+        }
     }
   }
 
   ngOnInit(): void {
     let errorResponse: any;
-    // update
     if (this.postId) {
       this.isUpdateMode = true;
       this.postService.getPostById(this.postId).subscribe((post: PostDTO) => {
@@ -170,10 +170,6 @@ export class PostFormComponent implements OnInit {
           this.sharedService.errorLog(errorResponse)
         }
     }
-
-    if (responseOK) {
-      this.router.navigateByUrl('posts');
-    }
   }
 
   private createPost(): void {
@@ -202,10 +198,6 @@ export class PostFormComponent implements OnInit {
           errorResponse = error.error;
           this.sharedService.errorLog(errorResponse)
         }
-    }
-
-    if (responseOK) {
-      this.router.navigateByUrl('posts');
     }
   }
 
