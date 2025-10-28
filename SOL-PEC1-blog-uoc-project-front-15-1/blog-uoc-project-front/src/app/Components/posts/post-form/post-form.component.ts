@@ -153,7 +153,7 @@ export class PostFormComponent implements OnInit {
         .pipe(
           finalize(async () => {
             await this.sharedService.managementToast(
-              'categoryFeedback',
+              'postFeedback',
               responseOK,
               errorResponse
             );
@@ -182,7 +182,7 @@ export class PostFormComponent implements OnInit {
         .pipe(
           finalize(async () => {
             await this.sharedService.managementToast(
-              'categoryFeedback',
+              'postFeedback',
               responseOK,
               errorResponse
             );
