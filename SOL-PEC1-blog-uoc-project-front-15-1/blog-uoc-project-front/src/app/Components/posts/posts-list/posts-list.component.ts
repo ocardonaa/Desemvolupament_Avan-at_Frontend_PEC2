@@ -1,5 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { PostDTO } from 'src/app/Models/post.dto';
 import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { PostService } from 'src/app/Services/post.service';
@@ -21,16 +23,17 @@ export class PostsListComponent {
     this.loadPosts();
   }
 
-  private async loadPosts(): Promise<void> {
+  private loadPosts(): void {
     let errorResponse: any;
     const userId = this.localStorageService.get('user_id');
     if (userId) {
-      try {
-        this.posts = await this.postService.getPostsByUserId(userId);
-      } catch (error: any) {
-        errorResponse = error.error;
-        this.sharedService.errorLog(errorResponse);
-      }
+      this.postService.getPostsByUserId(userId).subscribe((posts: PostDTO[]) => {
+        this.posts = posts;
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
+        }
     }
   }
 
@@ -42,21 +45,20 @@ export class PostsListComponent {
     this.router.navigateByUrl('/user/post/' + postId);
   }
 
-  async deletePost(postId: string): Promise<void> {
+  deletePost(postId: string): void {
     let errorResponse: any;
 
     // show confirmation popup
     let result = confirm('Confirm delete post with id: ' + postId + ' .');
     if (result) {
-      try {
-        const rowsAffected = await this.postService.deletePost(postId);
-        if (rowsAffected.affected > 0) {
-          this.loadPosts();
+      this.postService.deletePost(postId).subscribe(() => {
+        this.loadPosts();
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      } catch (error: any) {
-        errorResponse = error.error;
-        this.sharedService.errorLog(errorResponse);
-      }
     }
   }
 }
+

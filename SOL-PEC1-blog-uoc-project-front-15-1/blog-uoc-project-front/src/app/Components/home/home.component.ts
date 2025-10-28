@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderMenus } from 'src/app/Models/header-menus.dto';
@@ -36,39 +37,41 @@ export class HomeComponent {
       }
     );
   }
-  private async loadPosts(): Promise<void> {
+  private loadPosts(): void {
     let errorResponse: any;
     const userId = this.localStorageService.get('user_id');
     if (userId) {
       this.showButtons = true;
     }
-    try {
-      this.posts = await this.postService.getPosts();
-    } catch (error: any) {
-      errorResponse = error.error;
-      this.sharedService.errorLog(errorResponse);
-    }
+    this.postService.getPosts().subscribe((posts: PostDTO[]) => {
+      this.posts = posts;
+      this.posts.sort((p1, p2) => p1.postId.localeCompare(p2.postId)); // esto evita que al dar un like el orden de los posts cambie
+    }),
+      (error: HttpErrorResponse) => {
+        errorResponse = error.error;
+        this.sharedService.errorLog(errorResponse)
+      }
   }
 
-  async like(postId: string): Promise<void> {
+  like(postId: string): void {
     let errorResponse: any;
-    try {
-      await this.postService.likePost(postId);
+    this.postService.likePost(postId).subscribe(() => {
       this.loadPosts();
-    } catch (error: any) {
-      errorResponse = error.error;
-      this.sharedService.errorLog(errorResponse);
-    }
+    }),
+      (error: HttpErrorResponse) => {
+        errorResponse = error.error;
+        this.sharedService.errorLog(errorResponse)
+      }
   }
 
-  async dislike(postId: string): Promise<void> {
+  dislike(postId: string): void {
     let errorResponse: any;
-    try {
-      await this.postService.dislikePost(postId);
+    this.postService.dislikePost(postId).subscribe(() => {
       this.loadPosts();
-    } catch (error: any) {
-      errorResponse = error.error;
-      this.sharedService.errorLog(errorResponse);
-    }
+    }),
+      (error: HttpErrorResponse) => {
+        errorResponse = error.error;
+        this.sharedService.errorLog(errorResponse)
+      }
   }
 }

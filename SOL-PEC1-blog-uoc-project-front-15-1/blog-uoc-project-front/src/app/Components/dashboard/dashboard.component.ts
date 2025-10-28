@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { PostDTO } from 'src/app/Models/post.dto';
 import { PostService } from 'src/app/Services/post.service';
@@ -17,24 +18,24 @@ export class DashboardComponent implements OnInit {
   constructor(
     private postService: PostService,
     private sharedService: SharedService
-  ) {}
+  ) { }
 
-  async ngOnInit(): Promise<void> {
-    await this.loadPosts();
-
-    this.posts.forEach((post) => {
-      this.numLikes = this.numLikes + post.num_likes;
-      this.numDislikes = this.numDislikes + post.num_dislikes;
-    });
+  ngOnInit(): void {
+    this.loadPosts();
   }
 
-  private async loadPosts(): Promise<void> {
+  private loadPosts(): void {
     let errorResponse: any;
-    try {
-      this.posts = await this.postService.getPosts();
-    } catch (error: any) {
-      errorResponse = error.error;
-      this.sharedService.errorLog(errorResponse);
-    }
+    this.postService.getPosts().subscribe((posts: PostDTO[]) => {
+      this.posts = posts;
+      this.posts.forEach((post) => {
+        this.numLikes = this.numLikes + post.num_likes;
+        this.numDislikes = this.numDislikes + post.num_dislikes;
+      });
+    }),
+      (error: HttpErrorResponse) => {
+        errorResponse = error.error;
+        this.sharedService.errorLog(errorResponse)
+      }
   }
 }
