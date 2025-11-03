@@ -100,6 +100,9 @@
         <div *ngIf="password.errors.minlength">
           Password must be at least 8 characters long.
         </div>
+        <div *ngIf="password.errors.maxlength">
+          Password can be max 25 characters long.
+        </div>
       </div>
     </div>
 

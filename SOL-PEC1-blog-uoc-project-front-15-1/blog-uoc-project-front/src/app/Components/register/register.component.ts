@@ -80,7 +80,7 @@ export class RegisterComponent implements OnInit {
 
     this.password = new UntypedFormControl(this.registerUser.password, [
       Validators.required,
-      Validators.minLength(8),
+      Validators.minLength(8), Validators.maxLength(16),
     ]);
 
     this.registerForm = this.formBuilder.group({

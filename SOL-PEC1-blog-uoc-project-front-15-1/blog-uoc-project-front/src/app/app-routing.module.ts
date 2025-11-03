@@ -4,7 +4,7 @@ import { CategoriesListComponent } from './Components/categories/categories-list
 import { CategoryFormComponent } from './Components/categories/category-form/category-form.component';
 import { DashboardComponent } from './Components/dashboard/dashboard.component';
 import { HomeComponent } from './Components/home/home.component';
-import { LoginComponent } from './Components/login/login.component';
+import { LoginComponent } from './Auth/login/login.component';
 import { PostFormComponent } from './Components/posts/post-form/post-form.component';
 import { PostsListComponent } from './Components/posts/posts-list/posts-list.component';
 import { ProfileComponent } from './Components/profile/profile.component';

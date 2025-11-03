@@ -8,12 +8,15 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { AuthDTO } from 'src/app/Models/auth.dto';
 import { HeaderMenus } from 'src/app/Models/header-menus.dto';
-import { AuthService } from 'src/app/Services/auth.service';
 import { HeaderMenusService } from 'src/app/Services/header-menus.service';
 import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { SharedService } from 'src/app/Services/shared.service';
+import { Auth } from '../models/auth.dto';
+import { AuthService } from '../services/auth.service';
+import { Store } from '@ngrx/store';
+import { AuthState } from '../reducers/auth.reducer';
+import { login } from '../actions/auth.actions';
 
 @Component({
   selector: 'app-login',
@@ -21,12 +24,13 @@ import { SharedService } from 'src/app/Services/shared.service';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
-  loginUser: AuthDTO;
+  loginUser: Auth;
   email: UntypedFormControl;
   password: UntypedFormControl;
   loginForm: UntypedFormGroup;
 
   constructor(
+    private store: Store<AuthState>,
     private formBuilder: UntypedFormBuilder,
     private authService: AuthService,
     private sharedService: SharedService,
@@ -34,7 +38,7 @@ export class LoginComponent implements OnInit {
     private localStorageService: LocalStorageService,
     private router: Router
   ) {
-    this.loginUser = new AuthDTO('', '', '', '');
+    this.loginUser = new Auth('', '', '', '');
 
     this.email = new UntypedFormControl('', [
       Validators.required,
@@ -53,9 +57,15 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    //this.store.select('auth').subscribe(loginUser -> this.loginUser = loginUser)
+  }
 
   login(): void {
+    this.loginUser.email = this.email.value;
+    this.loginUser.password = this.password.value;
+    this.store.dispatch(login({ auth: this.loginUser }))
+    /*
     let responseOK: boolean = false;
     let errorResponse: any;
 
@@ -98,9 +108,6 @@ export class LoginComponent implements OnInit {
 
         this.sharedService.errorLog(error.error);
       }
-
-
-
-
+        */
   }
 }

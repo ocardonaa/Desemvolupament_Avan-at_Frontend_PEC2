@@ -1,5 +1,5 @@
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
@@ -9,7 +9,6 @@ import { CategoryFormComponent } from './Components/categories/category-form/cat
 import { FooterComponent } from './Components/footer/footer.component';
 import { HeaderComponent } from './Components/header/header.component';
 import { HomeComponent } from './Components/home/home.component';
-import { LoginComponent } from './Components/login/login.component';
 import { PostFormComponent } from './Components/posts/post-form/post-form.component';
 import { PostsListComponent } from './Components/posts/posts-list/posts-list.component';
 import { ProfileComponent } from './Components/profile/profile.component';
@@ -17,12 +16,17 @@ import { RegisterComponent } from './Components/register/register.component';
 import { AuthInterceptorService } from './Services/auth-interceptor.service';
 import { FormatDatePipe } from './Pipes/format-date.pipe';
 import { DashboardComponent } from './Components/dashboard/dashboard.component';
+import { StoreModule } from '@ngrx/store';
+import { AuthModule } from './Auth/auth.module';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../../src/environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import { appReducers, EffectsArray } from './app.reducer';
 
 @NgModule({
   declarations: [
     AppComponent,
     RegisterComponent,
-    LoginComponent,
     HeaderComponent,
     FooterComponent,
     HomeComponent,
@@ -39,6 +43,18 @@ import { DashboardComponent } from './Components/dashboard/dashboard.component';
     AppRoutingModule,
     ReactiveFormsModule,
     HttpClientModule,
+    AuthModule,
+    StoreModule.forRoot(appReducers, {
+      runtimeChecks: {
+        strictStateImmutability: false,
+        strictActionImmutability: false
+      }
+    }),
+    EffectsModule.forFeature(EffectsArray),
+    StoreDevtoolsModule.instrument({
+      maxAge: 25,
+      logOnly: environment.production
+    }),
   ],
   providers: [
     {

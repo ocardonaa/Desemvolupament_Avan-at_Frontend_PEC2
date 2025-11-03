@@ -1,4 +1,4 @@
-export class AuthDTO {
+export class Auth {
   user_id: string;
   access_token: string;
   email: string;
