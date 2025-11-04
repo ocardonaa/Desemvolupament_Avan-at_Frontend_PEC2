@@ -24,9 +24,9 @@ const _authReducer = createReducer(
         loaded: false,
         error: null
     })),
-    on(loginSuccess, (state, action) => ({
+    on(loginSuccess, (state, { auth }) => ({
         ...state,
-        credentials: action.auth,
+        credentials: auth,
         loading: false,
         loaded: true,
         error: null

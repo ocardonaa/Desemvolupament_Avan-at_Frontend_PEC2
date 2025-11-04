@@ -1,5 +1,5 @@
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NgModule, isDevMode } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
@@ -21,7 +21,8 @@ import { AuthModule } from './Auth/auth.module';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../../src/environments/environment';
 import { EffectsModule } from '@ngrx/effects';
-import { appReducers, EffectsArray } from './app.reducer';
+import { appReducers } from './app.reducer';
+import { AuthEffects } from './Auth/effects/auth.effects';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,7 @@ import { appReducers, EffectsArray } from './app.reducer';
         strictActionImmutability: false
       }
     }),
-    EffectsModule.forFeature(EffectsArray),
+    EffectsModule.forRoot([AuthEffects]),
     StoreDevtoolsModule.instrument({
       maxAge: 25,
       logOnly: environment.production

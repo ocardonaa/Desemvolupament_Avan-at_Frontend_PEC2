@@ -20,7 +20,7 @@ export class AuthService {
     this.urlBlogUocApi = 'http://localhost:3000/' + this.controller;
   }
 
-  login(auth: Auth): Observable<Auth> {
-    return this.http.post<Auth>(this.urlBlogUocApi, auth);
+  login(auth: Auth): Observable<AuthToken> {
+    return this.http.post<AuthToken>(this.urlBlogUocApi, auth);
   }
 }

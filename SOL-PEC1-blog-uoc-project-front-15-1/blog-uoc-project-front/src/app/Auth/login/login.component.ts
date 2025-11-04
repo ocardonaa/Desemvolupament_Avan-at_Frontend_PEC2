@@ -10,13 +10,13 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { HeaderMenus } from 'src/app/Models/header-menus.dto';
 import { HeaderMenusService } from 'src/app/Services/header-menus.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { SharedService } from 'src/app/Services/shared.service';
 import { Auth } from '../models/auth.dto';
 import { AuthService } from '../services/auth.service';
 import { Store } from '@ngrx/store';
 import { AuthState } from '../reducers/auth.reducer';
 import { login } from '../actions/auth.actions';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -28,18 +28,18 @@ export class LoginComponent implements OnInit {
   email: UntypedFormControl;
   password: UntypedFormControl;
   loginForm: UntypedFormGroup;
+  authState$: Observable<AuthState>;
 
   constructor(
-    private store: Store<AuthState>,
+    private store: Store<{ auth: AuthState }>,
     private formBuilder: UntypedFormBuilder,
     private authService: AuthService,
     private sharedService: SharedService,
     private headerMenusService: HeaderMenusService,
-    private localStorageService: LocalStorageService,
     private router: Router
   ) {
     this.loginUser = new Auth('', '', '', '');
-
+    this.authState$ = this.store.select('auth');
     this.email = new UntypedFormControl('', [
       Validators.required,
       Validators.pattern('[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$'),
@@ -58,13 +58,16 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    //this.store.select('auth').subscribe(loginUser -> this.loginUser = loginUser)
+    
   }
 
   login(): void {
     this.loginUser.email = this.email.value;
     this.loginUser.password = this.password.value;
+    this.loginUser.access_token = '';
+    this.loginUser.user_id = '';
     this.store.dispatch(login({ auth: this.loginUser }))
+    this.router.navigateByUrl('home');
     /*
     let responseOK: boolean = false;
     let errorResponse: any;
