@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { AuthState } from 'src/app/Auth/reducers/auth.reducer';
 import { CategoryDTO } from 'src/app/Models/category.dto';
 import { CategoryService } from 'src/app/Services/category.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { SharedService } from 'src/app/Services/shared.service';
 
 @Component({
@@ -13,30 +15,38 @@ import { SharedService } from 'src/app/Services/shared.service';
 })
 export class CategoriesListComponent {
   categories!: CategoryDTO[];
+  authState$: Observable<AuthState>;
+  private subscription: Subscription = new Subscription();
+  userid: string = '';
 
   constructor(
     private categoryService: CategoryService,
     private router: Router,
-    private localStorageService: LocalStorageService,
+    private store: Store<{ auth: AuthState }>,
     private sharedService: SharedService
   ) {
+    this.authState$ = this.store.select('auth');
     this.loadCategories();
   }
 
   private loadCategories(): void {
     let errorResponse: any;
-    const userId = this.localStorageService.get('user_id');
-    if (userId) {
-      this.categoryService.getCategoriesByUserId(
-        userId
-      ).subscribe((categories: CategoryDTO[]) => {
-        this.categories = categories
-      }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          this.categoryService.getCategoriesByUserId(
+            this.userid
+          ).subscribe((categories: CategoryDTO[]) => {
+            this.categories = categories;
+          }),
+            (error: HttpErrorResponse) => {
+              errorResponse = error.error;
+              this.sharedService.errorLog(errorResponse)
+            }
         }
-    }
+      })
+    );
   }
 
   createCategory(): void {

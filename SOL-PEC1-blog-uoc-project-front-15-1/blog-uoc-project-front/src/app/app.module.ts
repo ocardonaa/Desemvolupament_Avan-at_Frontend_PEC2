@@ -21,8 +21,7 @@ import { AuthModule } from './Auth/auth.module';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../../src/environments/environment';
 import { EffectsModule } from '@ngrx/effects';
-import { appReducers } from './app.reducer';
-import { AuthEffects } from './Auth/effects/auth.effects';
+import { appReducers, EffectsArray } from './app.reducer';
 
 @NgModule({
   declarations: [
@@ -51,7 +50,7 @@ import { AuthEffects } from './Auth/effects/auth.effects';
         strictActionImmutability: false
       }
     }),
-    EffectsModule.forRoot([AuthEffects]),
+    EffectsModule.forRoot(EffectsArray),
     StoreDevtoolsModule.instrument({
       maxAge: 25,
       logOnly: environment.production

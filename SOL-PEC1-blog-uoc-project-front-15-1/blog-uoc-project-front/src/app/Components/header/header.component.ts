@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { HeaderMenus } from 'src/app/Models/header-menus.dto';
-import { HeaderMenusService } from 'src/app/Services/header-menus.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
+import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { logout } from 'src/app/Auth/actions/auth.actions';
+import { AuthState } from 'src/app/Auth/reducers/auth.reducer';
 
 @Component({
   selector: 'app-header',
@@ -12,24 +13,26 @@ import { LocalStorageService } from 'src/app/Services/local-storage.service';
 export class HeaderComponent implements OnInit {
   showAuthSection: boolean;
   showNoAuthSection: boolean;
+  authState$: Observable<AuthState>;
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private router: Router,
-    private headerMenusService: HeaderMenusService,
-    private localStorageService: LocalStorageService
+    private store: Store<{ auth: AuthState }>,
   ) {
     this.showAuthSection = false;
     this.showNoAuthSection = true;
+    this.authState$ = this.store.select('auth');
   }
 
   ngOnInit(): void {
-    this.headerMenusService.headerManagement.subscribe(
-      (headerInfo: HeaderMenus) => {
-        if (headerInfo) {
-          this.showAuthSection = headerInfo.showAuthSection;
-          this.showNoAuthSection = headerInfo.showNoAuthSection;
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.showAuthSection = true;
+          this.showNoAuthSection = false;
         }
-      }
+      })
     );
   }
 
@@ -62,16 +65,9 @@ export class HeaderComponent implements OnInit {
   }
 
   logout(): void {
-    this.localStorageService.remove('user_id');
-    this.localStorageService.remove('access_token');
-
-    const headerInfo: HeaderMenus = {
-      showAuthSection: false,
-      showNoAuthSection: true,
-    };
-
-    this.headerMenusService.headerManagement.next(headerInfo);
-
+    this.showAuthSection = false;
+    this.showNoAuthSection = true;
+    this.store.dispatch(logout());
     this.router.navigateByUrl('home');
   }
 }

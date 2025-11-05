@@ -7,10 +7,12 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { AuthState } from 'src/app/Auth/reducers/auth.reducer';
 import { CategoryDTO } from 'src/app/Models/category.dto';
 import { CategoryService } from 'src/app/Services/category.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { SharedService } from 'src/app/Services/shared.service';
 
 @Component({
@@ -28,8 +30,11 @@ export class CategoryFormComponent implements OnInit {
   isValidForm: boolean | null;
 
   private isUpdateMode: boolean;
-  private validRequest: boolean;
   private categoryId: string | null;
+
+  authState$: Observable<AuthState>;
+  private subscription: Subscription = new Subscription();
+  userid: string = '';
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -37,13 +42,13 @@ export class CategoryFormComponent implements OnInit {
     private formBuilder: UntypedFormBuilder,
     private router: Router,
     private sharedService: SharedService,
-    private localStorageService: LocalStorageService
+    private store: Store<{ auth: AuthState }>,
   ) {
     this.isValidForm = null;
     this.categoryId = this.activatedRoute.snapshot.paramMap.get('id');
     this.category = new CategoryDTO('', '', '');
     this.isUpdateMode = false;
-    this.validRequest = false;
+    this.authState$ = this.store.select('auth');
 
     this.title = new UntypedFormControl(this.category.title, [
       Validators.required,
@@ -97,59 +102,70 @@ export class CategoryFormComponent implements OnInit {
   private editCategory(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    const userId = this.localStorageService.get('user_id');
-    if (userId && this.categoryId) {
-      this.category.userId = userId;
-      this.categoryService.updateCategory(this.categoryId, this.category)
-        .pipe(
-          finalize(async () => {
-            await this.sharedService.managementToast(
-              'categoryFeedback',
-              responseOK,
-              errorResponse
-            );
-            if (responseOK) {
-              this.router.navigateByUrl('categories');
-            }
-          })
-        )
-        .subscribe(() => {
-          responseOK = true;
-        }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          if (this.userid && this.categoryId) {
+            this.category.userId = this.userid;
+            this.categoryService.updateCategory(this.categoryId, this.category)
+              .pipe(
+                finalize(async () => {
+                  await this.sharedService.managementToast(
+                    'categoryFeedback',
+                    responseOK,
+                    errorResponse
+                  );
+                  if (responseOK) {
+                    this.router.navigateByUrl('categories');
+                  }
+                })
+              )
+              .subscribe(() => {
+                responseOK = true;
+              }),
+              (error: HttpErrorResponse) => {
+                errorResponse = error.error;
+                this.sharedService.errorLog(errorResponse)
+              }
+          }
         }
-    }
+      })
+    );
+
   }
 
   private createCategory(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    const userId = this.localStorageService.get('user_id');
-    if (userId) {
-      this.category.userId = userId;
-      this.categoryService.createCategory(this.category)
-        .pipe(
-          finalize(async () => {
-            await this.sharedService.managementToast(
-              'categoryFeedback',
-              responseOK,
-              errorResponse
-            );
-            if (responseOK) {
-              this.router.navigateByUrl('categories');
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          this.category.userId = this.userid;
+          this.categoryService.createCategory(this.category)
+            .pipe(
+              finalize(async () => {
+                await this.sharedService.managementToast(
+                  'categoryFeedback',
+                  responseOK,
+                  errorResponse
+                );
+                if (responseOK) {
+                  this.router.navigateByUrl('categories');
+                }
+              })
+            )
+            .subscribe(() => {
+              responseOK = true;
+            }),
+            (error: HttpErrorResponse) => {
+              errorResponse = error.error;
+              this.sharedService.errorLog(errorResponse)
             }
-          })
-        )
-        .subscribe(() => {
-          responseOK = true;
-        }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
         }
-    }
+      })
+    );
   }
 
   async saveCategory() {

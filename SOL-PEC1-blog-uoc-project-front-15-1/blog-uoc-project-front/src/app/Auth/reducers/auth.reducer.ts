@@ -1,6 +1,6 @@
 import { createReducer, on } from "@ngrx/store";
 import { Auth } from "../models/auth.dto";
-import { login, loginFailure, loginSuccess } from "../actions/auth.actions";
+import { login, loginFailure, loginSuccess, logout } from "../actions/auth.actions";
 
 export interface AuthState {
     credentials: Auth;
@@ -36,7 +36,10 @@ const _authReducer = createReducer(
         loading: false,
         loaded: false,
         error: { payload }
-    }))
+    })),
+    on(logout, () => {
+        return { ...initialState };
+    })
 );
 
 export function authReducer(state: any, action: any) {

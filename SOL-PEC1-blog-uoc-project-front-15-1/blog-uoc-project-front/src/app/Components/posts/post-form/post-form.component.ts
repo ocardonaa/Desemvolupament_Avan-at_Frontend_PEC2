@@ -11,10 +11,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryDTO } from 'src/app/Models/category.dto';
 import { PostDTO } from 'src/app/Models/post.dto';
 import { CategoryService } from 'src/app/Services/category.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { PostService } from 'src/app/Services/post.service';
 import { SharedService } from 'src/app/Services/shared.service';
 import { finalize } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { AuthState } from 'src/app/Auth/reducers/auth.reducer';
+import { Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-post-form',
@@ -34,10 +36,13 @@ export class PostFormComponent implements OnInit {
   isValidForm: boolean | null;
 
   private isUpdateMode: boolean;
-  private validRequest: boolean;
   private postId: string | null;
 
   categoriesList!: CategoryDTO[];
+
+  authState$: Observable<AuthState>;
+  private subscription: Subscription = new Subscription();
+  userid: string = '';
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -45,14 +50,14 @@ export class PostFormComponent implements OnInit {
     private formBuilder: UntypedFormBuilder,
     private router: Router,
     private sharedService: SharedService,
-    private localStorageService: LocalStorageService,
+    private store: Store<{ auth: AuthState }>,
     private categoryService: CategoryService
   ) {
     this.isValidForm = null;
     this.postId = this.activatedRoute.snapshot.paramMap.get('id');
     this.post = new PostDTO('', '', 0, 0, new Date());
     this.isUpdateMode = false;
-    this.validRequest = false;
+    this.authState$ = this.store.select('auth');
 
     this.title = new UntypedFormControl(this.post.title, [
       Validators.required,
@@ -89,18 +94,22 @@ export class PostFormComponent implements OnInit {
 
   private loadCategories(): void {
     let errorResponse: any;
-    const userId = this.localStorageService.get('user_id');
-    if (userId) {
-      this.categoryService.getCategoriesByUserId(
-        userId
-      ).subscribe((categories: CategoryDTO[]) => {
-        this.categoriesList = categories
-      }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          this.categoryService.getCategoriesByUserId(
+            this.userid
+          ).subscribe((categories: CategoryDTO[]) => {
+            this.categoriesList = categories
+          }),
+            (error: HttpErrorResponse) => {
+              errorResponse = error.error;
+              this.sharedService.errorLog(errorResponse)
+            }
         }
-    }
+      })
+    );
   }
 
   ngOnInit(): void {
@@ -146,59 +155,72 @@ export class PostFormComponent implements OnInit {
   private editPost(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    const userId = this.localStorageService.get('user_id');
-    if (userId && this.postId) {
-      this.post.userId = userId;
-      this.postService.updatePost(this.postId, this.post)
-        .pipe(
-          finalize(async () => {
-            await this.sharedService.managementToast(
-              'postFeedback',
-              responseOK,
-              errorResponse
-            );
-            if (responseOK) {
-              this.router.navigateByUrl('posts');
-            }
-          })
-        )
-        .subscribe(() => {
-          responseOK = true;
-        }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          if (this.userid && this.postId) {
+            this.post.userId = this.userid;
+            this.postService.updatePost(this.postId, this.post)
+              .pipe(
+                finalize(async () => {
+                  await this.sharedService.managementToast(
+                    'postFeedback',
+                    responseOK,
+                    errorResponse
+                  );
+                  if (responseOK) {
+                    this.router.navigateByUrl('posts');
+                  }
+                })
+              )
+              .subscribe(() => {
+                responseOK = true;
+              }),
+              (error: HttpErrorResponse) => {
+                errorResponse = error.error;
+                this.sharedService.errorLog(errorResponse)
+              }
+          }
         }
-    }
+      })
+    );
+
   }
 
   private createPost(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    const userId = this.localStorageService.get('user_id');
-    if (userId) {
-      this.post.userId = userId;
-      this.postService.createPost(this.post)
-        .pipe(
-          finalize(async () => {
-            await this.sharedService.managementToast(
-              'postFeedback',
-              responseOK,
-              errorResponse
-            );
-            if (responseOK) {
-              this.router.navigateByUrl('posts');
-            }
-          })
-        )
-        .subscribe(() => {
-          responseOK = true;
-        }),
-        (error: HttpErrorResponse) => {
-          errorResponse = error.error;
-          this.sharedService.errorLog(errorResponse)
+    this.subscription.add(
+      this.authState$.subscribe((state: AuthState) => {
+        if (state.credentials && state.credentials.user_id) {
+          this.userid = state.credentials.user_id;
+          if (this.userid) {
+            this.post.userId = this.userid;
+            this.postService.createPost(this.post)
+              .pipe(
+                finalize(async () => {
+                  await this.sharedService.managementToast(
+                    'postFeedback',
+                    responseOK,
+                    errorResponse
+                  );
+                  if (responseOK) {
+                    this.router.navigateByUrl('posts');
+                  }
+                })
+              )
+              .subscribe(() => {
+                responseOK = true;
+              }),
+              (error: HttpErrorResponse) => {
+                errorResponse = error.error;
+                this.sharedService.errorLog(errorResponse)
+              }
+          }
         }
-    }
+      })
+    );
   }
 
   async savePost() {

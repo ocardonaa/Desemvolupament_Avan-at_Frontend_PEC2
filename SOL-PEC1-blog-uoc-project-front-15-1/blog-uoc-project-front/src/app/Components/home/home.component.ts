@@ -1,15 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { AuthState } from 'src/app/Auth/reducers/auth.reducer';
-import { HeaderMenus } from 'src/app/Models/header-menus.dto';
 import { PostDTO } from 'src/app/Models/post.dto';
-import { HeaderMenusService } from 'src/app/Services/header-menus.service';
-import { LocalStorageService } from 'src/app/Services/local-storage.service';
 import { PostService } from 'src/app/Services/post.service';
 import { SharedService } from 'src/app/Services/shared.service';
+import { HeaderMenus } from 'src/app/Models/header-menus.dto';
 
 @Component({
   selector: 'app-home',
@@ -26,10 +23,7 @@ export class HomeComponent {
   constructor(
     private postService: PostService,
     private store: Store<{ auth: AuthState }>,
-    private localStorageService: LocalStorageService,
     private sharedService: SharedService,
-    private router: Router,
-    private headerMenusService: HeaderMenusService
   ) {
     this.showButtons = false;
     this.authState$ = this.store.select('auth');
@@ -37,7 +31,7 @@ export class HomeComponent {
   }
 
   ngOnInit(): void {
-    this.headerMenusService.headerManagement.subscribe(
+    this.subscription.add(
       (headerInfo: HeaderMenus) => {
         if (headerInfo) {
           this.showButtons = headerInfo.showAuthSection;
@@ -50,8 +44,9 @@ export class HomeComponent {
     let errorResponse: any;
     this.subscription.add(
       this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.showButtons = true;
+        this.showButtons = !!(state.credentials && state.credentials.user_id);  // Sets to true if authenticated, false otherwise
+        if (this.showButtons) {
+          this.userid = state.credentials.user_id;
         }
       })
     );
