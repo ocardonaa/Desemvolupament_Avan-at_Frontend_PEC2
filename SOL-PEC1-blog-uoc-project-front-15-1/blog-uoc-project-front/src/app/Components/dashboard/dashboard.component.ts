@@ -29,8 +29,8 @@ export class DashboardComponent implements OnInit {
     this.postService.getPosts().subscribe((posts: PostDTO[]) => {
       this.posts = posts;
       this.posts.forEach((post) => {
-        this.numLikes = this.numLikes + post.num_likes;
-        this.numDislikes = this.numDislikes + post.num_dislikes;
+        this.numLikes += post.num_likes;
+        this.numDislikes += post.num_dislikes;
       });
     }),
       (error: HttpErrorResponse) => {

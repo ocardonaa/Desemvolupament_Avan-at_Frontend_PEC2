@@ -13,13 +13,13 @@ import { Store } from '@ngrx/store';
   providedIn: 'root',
 })
 export class AuthInterceptorService implements HttpInterceptor {
-  private accessToken$ = new BehaviorSubject<string | null>(null);
+  private access_token$ = new BehaviorSubject<string | null>(null);
   private subscription: Subscription = new Subscription();
   constructor(private store: Store<{ auth: AuthState }>) {
     this.subscription.add(
       this.store.select('auth').subscribe((state: AuthState) => {
         const token = state?.credentials?.access_token || null;
-        this.accessToken$.next(token);
+        this.access_token$.next(token);
       })
     );
   }
@@ -28,13 +28,13 @@ export class AuthInterceptorService implements HttpInterceptor {
     req: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    const accessToken = this.accessToken$.value;
-    if (accessToken) {
+    const access_token = this.access_token$.value;
+    if (access_token) {
       req = req.clone({
         setHeaders: {
           'Content-Type': 'application/json; charset=utf-8',
           Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${access_token}`,
         },
       });
     }

@@ -44,7 +44,7 @@ export class HomeComponent {
     let errorResponse: any;
     this.subscription.add(
       this.authState$.subscribe((state: AuthState) => {
-        this.showButtons = !!(state.credentials && state.credentials.user_id);  // Sets to true if authenticated, false otherwise
+        this.showButtons = !!(state.credentials && state.credentials.user_id);
         if (this.showButtons) {
           this.userid = state.credentials.user_id;
         }
