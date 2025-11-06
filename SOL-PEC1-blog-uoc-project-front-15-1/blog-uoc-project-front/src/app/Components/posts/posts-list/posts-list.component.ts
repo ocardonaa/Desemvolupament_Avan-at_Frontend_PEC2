@@ -31,23 +31,20 @@ export class PostsListComponent {
 
   private loadPosts(): void {
     let errorResponse: any;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          if (this.userid) {
-            this.postService.getPostsByUserId(this.userid).subscribe((posts: PostDTO[]) => {
-              this.posts = posts;
-            }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid) {
+      this.postService.getPostsByUserId(this.userid).subscribe((posts: PostDTO[]) => {
+        this.posts = posts;
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
-
+    }
   }
 
   createPost(): void {

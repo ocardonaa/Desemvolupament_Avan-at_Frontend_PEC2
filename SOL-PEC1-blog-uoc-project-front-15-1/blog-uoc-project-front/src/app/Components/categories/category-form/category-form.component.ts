@@ -102,70 +102,67 @@ export class CategoryFormComponent implements OnInit {
   private editCategory(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          if (this.userid && this.categoryId) {
-            this.category.userId = this.userid;
-            this.categoryService.updateCategory(this.categoryId, this.category)
-              .pipe(
-                finalize(async () => {
-                  await this.sharedService.managementToast(
-                    'categoryFeedback',
-                    responseOK,
-                    errorResponse
-                  );
-                  if (responseOK) {
-                    this.router.navigateByUrl('categories');
-                  }
-                })
-              )
-              .subscribe(() => {
-                responseOK = true;
-              }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid && this.categoryId) {
+      this.category.userId = this.userid;
+      this.categoryService.updateCategory(this.categoryId, this.category)
+        .pipe(
+          finalize(async () => {
+            await this.sharedService.managementToast(
+              'categoryFeedback',
+              responseOK,
+              errorResponse
+            );
+            if (responseOK) {
+              this.router.navigateByUrl('categories');
+            }
+          })
+        )
+        .subscribe(() => {
+          responseOK = true;
+        }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
-
+    }
   }
 
   private createCategory(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          this.category.userId = this.userid;
-          this.categoryService.createCategory(this.category)
-            .pipe(
-              finalize(async () => {
-                await this.sharedService.managementToast(
-                  'categoryFeedback',
-                  responseOK,
-                  errorResponse
-                );
-                if (responseOK) {
-                  this.router.navigateByUrl('categories');
-                }
-              })
-            )
-            .subscribe(() => {
-              responseOK = true;
-            }),
-            (error: HttpErrorResponse) => {
-              errorResponse = error.error;
-              this.sharedService.errorLog(errorResponse)
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid) {
+      this.category.userId = this.userid;
+      this.categoryService.createCategory(this.category)
+        .pipe(
+          finalize(async () => {
+            await this.sharedService.managementToast(
+              'categoryFeedback',
+              responseOK,
+              errorResponse
+            );
+            if (responseOK) {
+              this.router.navigateByUrl('categories');
             }
+          })
+        )
+        .subscribe(() => {
+          responseOK = true;
+        }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
+    }
   }
 
   async saveCategory() {

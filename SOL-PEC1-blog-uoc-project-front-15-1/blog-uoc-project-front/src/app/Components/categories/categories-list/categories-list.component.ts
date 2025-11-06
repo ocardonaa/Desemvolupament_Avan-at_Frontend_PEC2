@@ -31,22 +31,22 @@ export class CategoriesListComponent {
 
   private loadCategories(): void {
     let errorResponse: any;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          this.categoryService.getCategoriesByUserId(
-            this.userid
-          ).subscribe((categories: CategoryDTO[]) => {
-            this.categories = categories;
-          }),
-            (error: HttpErrorResponse) => {
-              errorResponse = error.error;
-              this.sharedService.errorLog(errorResponse)
-            }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid) {
+      this.categoryService.getCategoriesByUserId(
+        this.userid
+      ).subscribe((categories: CategoryDTO[]) => {
+        this.categories = categories;
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
+    }
   }
 
   createCategory(): void {

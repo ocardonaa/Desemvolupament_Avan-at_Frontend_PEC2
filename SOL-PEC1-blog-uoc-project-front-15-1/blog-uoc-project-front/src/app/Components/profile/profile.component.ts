@@ -101,41 +101,38 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     let errorResponse: any;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          if (this.userid) {
-            this.userService.getUSerById(this.userid).subscribe((userData: UserDTO) => {
-              this.profileUser = userData;
-              this.name.setValue(userData.name);
-              this.surname_1.setValue(userData.surname_1);
-              this.surname_2.setValue(userData.surname_2);
-              this.alias.setValue(userData.alias);
-              this.birth_date.setValue(
-                formatDate(userData.birth_date, 'yyyy-MM-dd', 'en')
-              );
-              this.email.setValue(userData.email);
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+        if (this.userid) {
+          this.userService.getUSerById(this.userid).subscribe((userData: UserDTO) => {
+            this.profileUser = userData;
+            this.name.setValue(userData.name);
+            this.surname_1.setValue(userData.surname_1);
+            this.surname_2.setValue(userData.surname_2);
+            this.alias.setValue(userData.alias);
+            this.birth_date.setValue(
+              formatDate(userData.birth_date, 'yyyy-MM-dd', 'en')
+            );
+            this.email.setValue(userData.email);
 
-              this.profileForm = this.formBuilder.group({
-                name: this.name,
-                surname_1: this.surname_1,
-                surname_2: this.surname_2,
-                alias: this.alias,
-                birth_date: this.birth_date,
-                email: this.email,
-                password: this.password,
-              });
-            }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
+            this.profileForm = this.formBuilder.group({
+              name: this.name,
+              surname_1: this.surname_1,
+              surname_2: this.surname_2,
+              alias: this.alias,
+              birth_date: this.birth_date,
+              email: this.email,
+              password: this.password,
+            });
+          }),
+            (error: HttpErrorResponse) => {
+              errorResponse = error.error;
+              this.sharedService.errorLog(errorResponse)
+            }
         }
-      })
-    );
-
+      }
+    })
   }
 
   updateUser(): void {
@@ -149,32 +146,29 @@ export class ProfileComponent implements OnInit {
 
     this.isValidForm = true;
     this.profileUser = this.profileForm.value;
-
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          if (this.userid) {
-            this.userService.updateUser(this.userid, this.profileUser).pipe(
-              finalize(async () => {
-                await this.sharedService.managementToast(
-                  'profileFeedback',
-                  responseOK,
-                  errorResponse
-                );
-              })
-            ).subscribe(() => {
-              responseOK = true;
-            }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+        if (this.userid) {
+          this.userService.updateUser(this.userid, this.profileUser).pipe(
+            finalize(async () => {
+              await this.sharedService.managementToast(
+                'profileFeedback',
+                responseOK,
+                errorResponse
+              );
+            })
+          ).subscribe(() => {
+            responseOK = true;
+          }),
+            (error: HttpErrorResponse) => {
+              errorResponse = error.error;
+              this.sharedService.errorLog(errorResponse)
+            }
         }
-      })
-    );
-
+      }
+    })
 
   }
+
 }

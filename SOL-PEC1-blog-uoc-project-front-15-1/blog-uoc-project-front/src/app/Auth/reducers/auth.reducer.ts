@@ -37,9 +37,12 @@ const _authReducer = createReducer(
         loaded: false,
         error: { payload }
     })),
-    on(logout, () => {
-        return { ...initialState };
-    })
+    on(logout, () => ({
+        ...initialState, 
+        loading: false, 
+        loaded: false, 
+        error: null
+    }))
 );
 
 export function authReducer(state: any, action: any) {

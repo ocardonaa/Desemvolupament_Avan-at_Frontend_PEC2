@@ -9,7 +9,6 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { HeaderMenus } from 'src/app/Models/header-menus.dto';
 import { UserDTO } from 'src/app/Models/user.dto';
 import { SharedService } from 'src/app/Services/shared.service';
 import { UserService } from 'src/app/Services/user.service';
@@ -126,12 +125,6 @@ export class RegisterComponent implements OnInit {
       (error: HttpErrorResponse) => {
         responseOK = false;
         errorResponse = error.error;
-
-        const headerInfo: HeaderMenus = {
-          showAuthSection: false,
-          showNoAuthSection: true,
-        };
-
         this.sharedService.errorLog(errorResponse);
       }
   }

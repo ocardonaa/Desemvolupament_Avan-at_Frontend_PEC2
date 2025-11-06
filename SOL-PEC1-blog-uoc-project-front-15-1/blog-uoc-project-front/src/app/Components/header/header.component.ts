@@ -26,14 +26,12 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.showAuthSection = true;
-          this.showNoAuthSection = false;
-        }
-      })
-    );
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.showAuthSection = true;
+        this.showNoAuthSection = false;
+      }
+    })
   }
 
   dashboard(): void {

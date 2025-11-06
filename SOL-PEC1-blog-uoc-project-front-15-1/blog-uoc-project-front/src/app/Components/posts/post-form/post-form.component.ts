@@ -94,22 +94,22 @@ export class PostFormComponent implements OnInit {
 
   private loadCategories(): void {
     let errorResponse: any;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          this.categoryService.getCategoriesByUserId(
-            this.userid
-          ).subscribe((categories: CategoryDTO[]) => {
-            this.categoriesList = categories
-          }),
-            (error: HttpErrorResponse) => {
-              errorResponse = error.error;
-              this.sharedService.errorLog(errorResponse)
-            }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid) {
+      this.categoryService.getCategoriesByUserId(
+        this.userid
+      ).subscribe((categories: CategoryDTO[]) => {
+        this.categoriesList = categories
+      }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
+    }
   }
 
   ngOnInit(): void {
@@ -155,37 +155,34 @@ export class PostFormComponent implements OnInit {
   private editPost(): void {
     let errorResponse: any;
     let responseOK: boolean = false;
-    this.subscription.add(
-      this.authState$.subscribe((state: AuthState) => {
-        if (state.credentials && state.credentials.user_id) {
-          this.userid = state.credentials.user_id;
-          if (this.userid && this.postId) {
-            this.post.userId = this.userid;
-            this.postService.updatePost(this.postId, this.post)
-              .pipe(
-                finalize(async () => {
-                  await this.sharedService.managementToast(
-                    'postFeedback',
-                    responseOK,
-                    errorResponse
-                  );
-                  if (responseOK) {
-                    this.router.navigateByUrl('posts');
-                  }
-                })
-              )
-              .subscribe(() => {
-                responseOK = true;
-              }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
+    this.store.select('auth').subscribe(state => {
+      if (state.credentials && state.credentials.user_id) {
+        this.userid = state.credentials.user_id;
+      }
+    });
+    if (this.userid && this.postId) {
+      this.post.userId = this.userid;
+      this.postService.updatePost(this.postId, this.post)
+        .pipe(
+          finalize(async () => {
+            await this.sharedService.managementToast(
+              'postFeedback',
+              responseOK,
+              errorResponse
+            );
+            if (responseOK) {
+              this.router.navigateByUrl('posts');
+            }
+          })
+        )
+        .subscribe(() => {
+          responseOK = true;
+        }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
         }
-      })
-    );
-
+    }
   }
 
   private createPost(): void {
@@ -195,32 +192,32 @@ export class PostFormComponent implements OnInit {
       this.authState$.subscribe((state: AuthState) => {
         if (state.credentials && state.credentials.user_id) {
           this.userid = state.credentials.user_id;
-          if (this.userid) {
-            this.post.userId = this.userid;
-            this.postService.createPost(this.post)
-              .pipe(
-                finalize(async () => {
-                  await this.sharedService.managementToast(
-                    'postFeedback',
-                    responseOK,
-                    errorResponse
-                  );
-                  if (responseOK) {
-                    this.router.navigateByUrl('posts');
-                  }
-                })
-              )
-              .subscribe(() => {
-                responseOK = true;
-              }),
-              (error: HttpErrorResponse) => {
-                errorResponse = error.error;
-                this.sharedService.errorLog(errorResponse)
-              }
-          }
         }
       })
     );
+    if (this.userid) {
+      this.post.userId = this.userid;
+      this.postService.createPost(this.post)
+        .pipe(
+          finalize(async () => {
+            await this.sharedService.managementToast(
+              'postFeedback',
+              responseOK,
+              errorResponse
+            );
+            if (responseOK) {
+              this.router.navigateByUrl('posts');
+            }
+          })
+        )
+        .subscribe(() => {
+          responseOK = true;
+        }),
+        (error: HttpErrorResponse) => {
+          errorResponse = error.error;
+          this.sharedService.errorLog(errorResponse)
+        }
+    }
   }
 
   async savePost() {
